@@ -3,18 +3,33 @@ function setup() {
 }
 
 function draw() {
+  let wingStepSize = 12;
+  let stepDegrees = 45;
   let commonPoint = createVector(width / 2, height / 2)
-  let stepVec = createVector(0, -20);
-  let steps = 3;
-  let points = [];
+  let leftWingPoints = [];
+  let rightWingPoints = [];
+  let stepVec = createVector(0, -wingStepSize);
+  let steps = 6;
+
+  let leftPoint = commonPoint.copy();
   for (let i = 0; i <= steps; i++) {
-    points.push(commonPoint.copy());
-    stepVec.rotate(radians(random(-90, 0)));
-    commonPoint.add(stepVec);
+    leftWingPoints.push(leftPoint.copy());
+    stepVec.rotate(radians(random(-stepDegrees, 0)));
+    leftPoint.add(stepVec);
+  }
+  let rightPoint = commonPoint.copy();
+  stepVec = createVector(0, -wingStepSize);
+  for (let i = 0; i <= steps; i++) {
+    rightWingPoints.push(rightPoint.copy());
+    stepVec.rotate(radians(random(0, stepDegrees)));
+    rightPoint.add(stepVec);
   }
 
   beginShape();
-  points.forEach(p => vertex(p.x, p.y))
+  leftWingPoints.forEach(p => vertex(p.x, p.y))
+  endShape();
+  beginShape();
+  rightWingPoints.forEach(p => vertex(p.x, p.y))
   endShape();
 
   noLoop();
