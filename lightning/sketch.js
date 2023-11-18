@@ -1,7 +1,7 @@
 p5.disableFriendlyErrors = true;
 
 var bolts = [];
-var boltCount = 1;
+var boltCount = 16;
 var detailDepth = 8;
 var forkChanceSlider;
 
@@ -46,7 +46,7 @@ function draw() {
 
   bolts.forEach(bolt => bolt.show());
   bolts.forEach(bolt => bolt.regenerate());
-  // noLoop();
+  noLoop();
 }
 
 class Bolt {
@@ -55,7 +55,7 @@ class Bolt {
   }
 
   regenerate() {
-    this.root = createVector(random(width * 0.1, width * 0.9), 0);
+    this.root = createVector((bolts.length + 0.5) * width / boltCount, 0);
     this.dest = createVector(
         this.root.x + random(-width * 0.05, width * 0.05), height * 0.8);
     this.rootSeg = new Segment(this.root, this.dest, 16);
