@@ -1,8 +1,19 @@
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
 }
 
 canvas {
   display: block;
+}
+
+.slider-row {
+  display: flex;
+  flex-direction: row;
+}
+
+p {
+  text-align: center;
+  max-width: 100%;
 }

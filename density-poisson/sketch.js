@@ -3,9 +3,13 @@ var succpic;
 
 
 var radiusSlider;
+var radiusSliderLabel;
 var attemptSlider;
+var attemptSliderLabel;
 var densitySlider;
+var densitySliderLabel;
 var contrastSlider;
+var contrastSliderLabel;
 var circleCountLabel;
 
 function saveUserData() {
@@ -24,28 +28,43 @@ function setupSliders() {
   let initialAttemptSliderValue = 12;
   let initialContrastSliderValue = 1;
   let initialDensitySliderValue = 6;
-
   if (userData) {
-    radiusSlider = createSlider(1, 5, userData.radius, 0.001);
-    radiusSlider.style('width', '200px')
-    attemptSlider = createSlider(2, 40, userData.attempts, 1);
-    attemptSlider.style('width', '200px')
-    contrastSlider = createSlider(0, 12, userData.contrast, 0.1);
-    contrastSlider.style('width', '200px')
-    densitySlider = createSlider(1, 32, userData.density, 1);
-    densitySlider.style('width', '200px')
-  } else {
-    radiusSlider = createSlider(1, 5, 5, 0.001);
-    radiusSlider.style('width', '200px')
-    attemptSlider = createSlider(2, 40, 12, 1);
-    attemptSlider.style('width', '200px')
-    contrastSlider = createSlider(0, 12, 1, 0.1);
-    contrastSlider.style('width', '200px')
-    densitySlider = createSlider(1, 32, 6, 1);
-    densitySlider.style('width', '200px')
+    initialRadiusSliderValue = userData.radius;
+    initialAttemptSliderValue = userData.attempts;
+    initialContrastSliderValue = userData.contrast;
+    initialDensitySliderValue = userData.density;
   }
 
+  let sliderRow = createDiv();
+  sliderRow.addClass('slider-row');
 
+  let sliderContainer = createDiv().addClass('slider-container');
+  radiusSlider = createSlider(1, 5, userData.radius, 0.001);
+  radiusSliderLabel = createElement('p');
+  radiusSlider.parent(sliderContainer);
+  radiusSliderLabel.parent(sliderContainer);
+  sliderContainer.parent(sliderRow);
+
+  sliderContainer = createDiv().addClass('slider-container');
+  attemptSlider = createSlider(2, 40, userData.attempts, 1);
+  attemptSliderLabel = createElement('p');
+  attemptSlider.parent(sliderContainer);
+  attemptSliderLabel.parent(sliderContainer);
+  sliderContainer.parent(sliderRow);
+
+  sliderContainer = createDiv().addClass('slider-container');
+  contrastSlider = createSlider(0, 12, userData.contrast, 0.1);
+  contrastSliderLabel = createElement('p');
+  contrastSlider.parent(sliderContainer);
+  contrastSliderLabel.parent(sliderContainer);
+  sliderContainer.parent(sliderRow);
+
+  sliderContainer = createDiv().addClass('slider-container');
+  densitySlider = createSlider(1, 32, userData.density, 1);
+  densitySliderLabel = createElement('p');
+  densitySlider.parent(sliderContainer);
+  densitySliderLabel.parent(sliderContainer);
+  sliderContainer.parent(sliderRow);
 
   circleCountLabel = createElement('p');
 
@@ -75,14 +94,11 @@ function keyPressed() {
 }
 
 function mouseClicked() {
-  // lineCountLabel.html('line count: ' + (lineCountSlider.value() + 1));
-  // segmentCountLabel.html('segment count: ' + segmentCountSlider.value());
-  // noiseDxLabel.html('noise ∆x: ' + noiseDxSlider.value());
-  // noiseDyLabel.html('noise ∆y: ' + noiseDySlider.value());
-  // noiseMagLabel.html('noise magnitude: ' + noiseMagSlider.value());
-  // noiseSeedLabel.html('noise seed: ' + noiseSeedSlider.value());
+  radiusSliderLabel.html('radius: ' + radiusSlider.value());
+  attemptSliderLabel.html('attemps: ' + attemptSlider.value());
+  contrastSliderLabel.html('contrast: ' + contrastSlider.value());
+  densitySliderLabel.html('density: ' + densitySlider.value());
   saveUserData();
-
   initSampler();
 }
 
