@@ -1,73 +1,83 @@
 var sampler;
-var succpic;
+var sourcePicture;
 
+var minRadiusSlider;
+var minRadiusLabel;
+var spawnAttemptSlider;
+var spawnAttemptLabel;
+var contrastExponentSlider;
+var contrastExponentLabel;
+var highlightMultiplerSlider;
+var highlightMultiplierLabel;
 
-var radiusSlider;
-var radiusSliderLabel;
-var attemptSlider;
-var attemptSliderLabel;
-var densitySlider;
-var densitySliderLabel;
-var contrastSlider;
-var contrastSliderLabel;
 var circleCountLabel;
 
 function saveUserData() {
   let userData = {
-    radius: radiusSlider.value(),
-    attempts: attemptSlider.value(),
-    contrast: contrastSlider.value(),
-    density: densitySlider.value()
+    radius: minRadiusSlider.value(),
+    attempts: spawnAttemptSlider.value(),
+    contrast: contrastExponentSlider.value(),
+    density: highlightMultiplerSlider.value()
   };
   storeItem('userData', userData);
 }
 
 function setupSliders() {
+  // read user data if it exists in browser cache
   let userData = getItem('userData');
   let initialRadiusSliderValue = 5;
   let initialAttemptSliderValue = 12;
   let initialContrastSliderValue = 1;
-  let initialDensitySliderValue = 6;
+  let initialHighlightSliderValue = 6;
   if (userData) {
     initialRadiusSliderValue = userData.radius;
     initialAttemptSliderValue = userData.attempts;
     initialContrastSliderValue = userData.contrast;
-    initialDensitySliderValue = userData.density;
+    initialHighlightSliderValue = userData.density;
   }
 
+  // create the row of sliders
   let sliderRow = createDiv();
   sliderRow.addClass('slider-row');
 
+  // minumum dot radius
   let sliderContainer = createDiv().addClass('slider-container');
-  radiusSlider = createSlider(1, 5, userData.radius, 0.001);
-  radiusSliderLabel = createElement('p');
-  radiusSlider.parent(sliderContainer);
-  radiusSliderLabel.parent(sliderContainer);
+  minRadiusSlider = createSlider(1, 5, userData.radius, 0.001);
+  minRadiusLabel = createElement('p');
+  minRadiusSlider.parent(sliderContainer);
+  minRadiusLabel.parent(sliderContainer);
   sliderContainer.parent(sliderRow);
 
+  // maximum dot spawning attempts
   sliderContainer = createDiv().addClass('slider-container');
-  attemptSlider = createSlider(2, 40, userData.attempts, 1);
-  attemptSliderLabel = createElement('p');
-  attemptSlider.parent(sliderContainer);
-  attemptSliderLabel.parent(sliderContainer);
+  spawnAttemptSlider = createSlider(2, 40, userData.attempts, 1);
+  spawnAttemptLabel = createElement('p');
+  spawnAttemptSlider.parent(sliderContainer);
+  spawnAttemptLabel.parent(sliderContainer);
   sliderContainer.parent(sliderRow);
 
+  // contrast exponent
   sliderContainer = createDiv().addClass('slider-container');
-  contrastSlider = createSlider(0, 12, userData.contrast, 0.1);
-  contrastSliderLabel = createElement('p');
-  contrastSlider.parent(sliderContainer);
-  contrastSliderLabel.parent(sliderContainer);
+  contrastExponentSlider = createSlider(0, 12, userData.contrast, 0.1);
+  contrastExponentLabel = createElement('p');
+  contrastExponentSlider.parent(sliderContainer);
+  contrastExponentLabel.parent(sliderContainer);
   sliderContainer.parent(sliderRow);
 
+  // distance multiplier
   sliderContainer = createDiv().addClass('slider-container');
-  densitySlider = createSlider(1, 32, userData.density, 1);
-  densitySliderLabel = createElement('p');
-  densitySlider.parent(sliderContainer);
-  densitySliderLabel.parent(sliderContainer);
+  highlightMultiplerSlider = createSlider(1, 32, userData.density, 1);
+  highlightMultiplierLabel = createElement('p');
+  highlightMultiplerSlider.parent(sliderContainer);
+  highlightMultiplierLabel.parent(sliderContainer);
   sliderContainer.parent(sliderRow);
 
+  // circle count tracker
   circleCountLabel = createElement('p');
+  circleCountLabel.style('text-align', 'left');
+  circleCountLabel.style('padding-left', '10px');
 
+  // update text boxes
   mouseClicked();
 }
 
@@ -75,35 +85,36 @@ function setupSliders() {
 
 function keyPressed() {
   switch (key) {
+    // regenerate
     case 'r':
       initSampler();
       break;
+    // save to svg
     case 's':
       clear();
-
       sampler.samples.forEach(s => {
         let lumVal = luminanceSample(s.pos.x, s.pos.y);
         if (lumVal == 0) {
           return
         }
-        circle(s.pos.x, s.pos.y, radiusSlider.value() * (1 + 3 * lumVal))
+        circle(s.pos.x, s.pos.y, minRadiusSlider.value() * (1 + 3 * lumVal))
       })
       save();
-      // loop();
   }
 }
 
 function mouseClicked() {
-  radiusSliderLabel.html('radius: ' + radiusSlider.value());
-  attemptSliderLabel.html('attemps: ' + attemptSlider.value());
-  contrastSliderLabel.html('contrast: ' + contrastSlider.value());
-  densitySliderLabel.html('density: ' + densitySlider.value());
+  // update label text
+  minRadiusLabel.html('radius: ' + minRadiusSlider.value());
+  spawnAttemptLabel.html('attemps: ' + spawnAttemptSlider.value());
+  contrastExponentLabel.html('contrast: ' + contrastExponentSlider.value());
+  highlightMultiplierLabel.html('density: ' + highlightMultiplerSlider.value());
   saveUserData();
   initSampler();
 }
 
 function preload() {
-  succpic = loadImage('density-poisson/jett-haircut.png');
+  sourcePicture = loadImage('density-poisson/jett-haircut.png');
 }
 
 function setup() {
@@ -113,9 +124,9 @@ function setup() {
   strokeWeight(1);
 
   // size the density map correctly
-  succpic.resize(width, 0);
-  if (succpic.height > height) {
-    succpic.resize(0, height);
+  sourcePicture.resize(width, 0);
+  if (sourcePicture.height > height) {
+    sourcePicture.resize(0, height);
   }
 
   // create ui
@@ -126,7 +137,7 @@ function setup() {
 }
 
 function draw() {
-  circleCountLabel.html('' + sampler.samples.length);
+  circleCountLabel.html('circles: ' + sampler.samples.length);
   if (!sampler.samplesFull) {
     sampler.growSamples();
     sampler.growSamples();
@@ -134,7 +145,7 @@ function draw() {
     noLoop();
     clear();
 
-    let rad = radiusSlider.value();
+    let rad = minRadiusSlider.value();
     sampler.samples.forEach(s => {
       let lumVal = luminanceSample(s.pos.x, s.pos.y);
       if (lumVal == 0) {
@@ -146,21 +157,18 @@ function draw() {
 }
 
 function luminanceSample(x, y) {
-  // return succpic.get(x, y).g;
-
-  let succpixel = succpic.get(x, y);
+  let sourcePixel = sourcePicture.get(x, y);
   return Math.pow(
-      (red(succpixel) + blue(succpixel) + green(succpixel)) / (255 * 3),
-      contrastSlider.value());
+      (red(sourcePixel) + blue(sourcePixel) + green(sourcePixel)) / (255 * 3),
+      contrastExponentSlider.value());
 }
 
 function initSampler() {
-  // background('#fefaee');
-  // image(succpic, 0, 0);
   clear();
   sampler = new PoissonHash(
-      createVector(succpic.width, succpic.height),
-      parseFloat(radiusSlider.value()), parseInt(attemptSlider.value()));
+      createVector(sourcePicture.width, sourcePicture.height),
+      parseFloat(minRadiusSlider.value()),
+      parseInt(spawnAttemptSlider.value()));
   loop()
 }
 
@@ -219,7 +227,7 @@ class PoissonHash {
     // test neighboring squares in the spatial hash
     let sampleCol = floor(sampleX / this.cellSize);
     let sampleRow = floor(sampleY / this.cellSize);
-    let densityScale = densitySlider.value();
+    let densityScale = highlightMultiplerSlider.value();
     let radiusPadding = densityScale * this.sampleRadius * lumVal;
 
     for (let xOff = -(1 + densityScale); xOff <= (1 + densityScale); xOff++) {
