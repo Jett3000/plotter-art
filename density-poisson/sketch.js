@@ -34,7 +34,7 @@ function mouseClicked() {
 }
 
 function preload() {
-  succpic = loadImage('density-poisson/char.png');
+  succpic = loadImage('density-poisson/jett-haircut.png');
 }
 
 function setup() {

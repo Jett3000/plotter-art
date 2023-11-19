@@ -1,7 +1,7 @@
 p5.disableFriendlyErrors = true;
 
 var bolts = [];
-var boltCount = 16;
+var boltCount = 6;
 var detailDepth = 8;
 var forkChanceSlider;
 
@@ -14,7 +14,7 @@ function setup() {
   frameRate(30);
 
   forkChanceSlider = createSlider(0, 1, 0.6, 0);
-  detailDepthSlider = createSlider(1, 12, 8, 1);
+  detailDepthSlider = createSlider(1, 12, 9, 1);
 
   // bolt initialization
   for (let i = 0; i < boltCount; i++) {
@@ -36,16 +36,20 @@ function keyPressed() {
 
 
 function mouseClicked() {
-  bolts.forEach(bolt => bolt.regenerate());
+  bolts = [];
+  for (let i = 0; i < boltCount; i++) {
+    bolts.push(new Bolt());
+  }
   loop();
 }
 
 
 function draw() {
+  clear();
   background(28);
 
   bolts.forEach(bolt => bolt.show());
-  bolts.forEach(bolt => bolt.regenerate());
+  // bolts.forEach(bolt => bolt.regenerate());
   noLoop();
 }
 
@@ -88,12 +92,12 @@ class Bolt {
 
           direction.y = abs(direction.y);
           let newEndPos = mp.copy().add(direction);
-          while (newEndPos.x >= width) {
-            newEndPos.x -= 3;
-          }
-          while (newEndPos.x <= 0) {
-            newEndPos.x += 3;
-          }
+          // while (newEndPos.x >= width) {
+          //   newEndPos.x -= 3;
+          // }
+          // while (newEndPos.x <= 0) {
+          //   newEndPos.x += 3;
+          // }
 
           let forkSeg = new Segment(mp, newEndPos, curSeg.width * 0.3);
           newSegs.push(forkSeg);
