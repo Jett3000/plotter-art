@@ -8,6 +8,51 @@ var densitySlider;
 var contrastSlider;
 var circleCountLabel;
 
+function saveUserData() {
+  let userData = {
+    radius: radiusSlider.value(),
+    attempts: attemptSlider.value(),
+    contrast: contrastSlider.value(),
+    density: densitySlider.value()
+  };
+  storeItem('userData', userData);
+}
+
+function setupSliders() {
+  let userData = getItem('userData');
+  let initialRadiusSliderValue = 5;
+  let initialAttemptSliderValue = 12;
+  let initialContrastSliderValue = 1;
+  let initialDensitySliderValue = 6;
+
+  if (userData) {
+    radiusSlider = createSlider(1, 5, userData.radius, 0.001);
+    radiusSlider.style('width', '200px')
+    attemptSlider = createSlider(2, 40, userData.attempts, 1);
+    attemptSlider.style('width', '200px')
+    contrastSlider = createSlider(0, 12, userData.contrast, 0.1);
+    contrastSlider.style('width', '200px')
+    densitySlider = createSlider(1, 32, userData.density, 1);
+    densitySlider.style('width', '200px')
+  } else {
+    radiusSlider = createSlider(1, 5, 5, 0.001);
+    radiusSlider.style('width', '200px')
+    attemptSlider = createSlider(2, 40, 12, 1);
+    attemptSlider.style('width', '200px')
+    contrastSlider = createSlider(0, 12, 1, 0.1);
+    contrastSlider.style('width', '200px')
+    densitySlider = createSlider(1, 32, 6, 1);
+    densitySlider.style('width', '200px')
+  }
+
+
+
+  circleCountLabel = createElement('p');
+
+  mouseClicked();
+}
+
+
 
 function keyPressed() {
   switch (key) {
@@ -30,6 +75,14 @@ function keyPressed() {
 }
 
 function mouseClicked() {
+  // lineCountLabel.html('line count: ' + (lineCountSlider.value() + 1));
+  // segmentCountLabel.html('segment count: ' + segmentCountSlider.value());
+  // noiseDxLabel.html('noise ∆x: ' + noiseDxSlider.value());
+  // noiseDyLabel.html('noise ∆y: ' + noiseDySlider.value());
+  // noiseMagLabel.html('noise magnitude: ' + noiseMagSlider.value());
+  // noiseSeedLabel.html('noise seed: ' + noiseSeedSlider.value());
+  saveUserData();
+
   initSampler();
 }
 
@@ -38,17 +91,6 @@ function preload() {
 }
 
 function setup() {
-  // create sliders
-  radiusSlider = createSlider(1, 5, 5, 0.001);
-  radiusSlider.style('width', '200px')
-  attemptSlider = createSlider(2, 40, 12, 1);
-  attemptSlider.style('width', '200px')
-  contrastSlider = createSlider(0, 12, 1, 0.1);
-  contrastSlider.style('width', '200px')
-  densitySlider = createSlider(1, 32, 6, 1);
-  densitySlider.style('width', '200px')
-  circleCountLabel = createElement('p');
-
   // create the canvas for the sketch
   createCanvas(window.innerWidth, window.innerHeight * 0.95, SVG);
   noFill();
@@ -59,6 +101,9 @@ function setup() {
   if (succpic.height > height) {
     succpic.resize(0, height);
   }
+
+  // create ui
+  setupSliders();
 
   // begin generations :)
   initSampler();
