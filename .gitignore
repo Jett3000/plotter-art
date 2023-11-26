@@ -1,4 +1,6 @@
 *.svg
 *.png
 *.jpeg
+*.webp
+*.jpg
 .DS_Store
