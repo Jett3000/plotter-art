@@ -96,7 +96,7 @@ function setup() {
     w = h * 1.41;  // a4 proportions
   }
 
-  createCanvas(w, h);
+  createCanvas(w, h, SVG);
   noFill();
   stroke(0);
   strokeWeight(1);

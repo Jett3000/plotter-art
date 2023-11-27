@@ -114,7 +114,7 @@ function mouseClicked() {
 }
 
 function preload() {
-  sourcePicture = loadImage('density-poisson/dc2.png');
+  sourcePicture = loadImage('density-poisson/slime.png');
 }
 
 function setup() {
