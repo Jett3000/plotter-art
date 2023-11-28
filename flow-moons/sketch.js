@@ -1,15 +1,36 @@
+var moons = [];
+
+function keyPressed() {
+  if (key == 's') {
+    clear()
+    moons.forEach(m => {
+      m.cleanUp();
+      m.show();
+    });
+    save();
+  }
+}
+
 function setup() {
   createCanvas(window.innerWidth, window.innerHeight, SVG);
   noFill();
   strokeWeight(1);
   ellipseMode(RADIUS);
+
+  let circles = packCircles();
+  debugger;
+  moons = circles.map(c => {return new FlowMoon(c)})
 }
 
 function draw() {
-  let circles = packCircles();
-  console.log(circles);
-  circles.forEach(c => ellipse(c.x, c.y, c.z, c.z));
-  noLoop();
+  clear();
+  moons.forEach(m => {
+    let stepsPerFrame = 20;
+    while (stepsPerFrame--) {
+      m.step();
+    }
+    m.show(4);
+  });
 }
 
 // returns a number of packed circles as vectors
@@ -40,25 +61,20 @@ function packCircles(n = 5) {
         }
       }
       // with the walls
-      if (curr.pos.x < curr.rad || curr.pos.y < curr.rad ||
-          width - curr.pos.x < curr.rad || height - curr.pos.y < curr.rad) {
-        curr.rate = 0;
-      }
+      if (curr.againstWall()) curr.rate = 0;
+
+      // check for completion
+      allCirclesDone = true;
+      circles.forEach(c => {
+        if (c.rate > 0) allCirclesDone = false;
+      });
 
       curr = circlePool.pop();
     }
-
-    // check for completion
-    allCirclesDone = true;
-    circles.forEach(c => {
-      if (c.rate > 0) allCirclesDone = false;
-    })
   }
-
   // create breathing room
   circles.forEach(c => c.rad *= 0.9)
-
-  return circles.map(c => c.toVec());
+  return circles.map(c => c.toVec())
 }
 
 class PackableCircle {
@@ -79,6 +95,11 @@ class PackableCircle {
     return this.pos.dist(other.pos) < this.rad + other.rad;
   }
 
+  againstWall() {
+    return this.pos.x < this.rad || this.pos.y < this.rad ||
+        width - this.pos.x < this.rad || height - this.pos.y < this.rad;
+  }
+
   toVec() {
     let vecRep = this.pos.copy();
     vecRep.z = this.rad;
@@ -87,5 +108,80 @@ class PackableCircle {
 }
 
 class FlowMoon {
-  constructor() {}
+  constructor(circleVec) {
+    this.pos = createVector(circleVec.x, circleVec.y);
+    this.rad = circleVec.z;
+    this.particles = [];
+    this.particleCount = 120;
+    for (let i = 0; i < this.particleCount; i++) {
+      let particleRad = random() < 0.2 ? this.rad * 1.2 : this.rad;
+      let particlePos = p5.Vector.fromAngle(TWO_PI * i / this.particleCount)
+                            .mult(particleRad)
+                            .add(this.pos);
+
+      this.particles.push(new FlowParticle(particlePos, this.pos, particleRad));
+    }
+
+    this.done = false;
+  }
+
+  step() {
+    this.done = true;
+
+    this.particles.forEach(p => {
+      if (!p.done) {
+        p.step();
+        this.done = false;
+      }
+    });
+  }
+
+  show(everyNFrame = 1) {
+    this.particles.forEach(p => {
+      beginShape();
+      p.breadCrumbs.forEach((v, i) => {
+        if (i % everyNFrame == 0) {
+          vertex(v.x, v.y)
+        }
+      });
+      endShape();
+    })
+    ellipse(this.pos.x, this.pos.y, this.rad);
+    // ellipse(this.pos.x, this.pos.y, this.rad * 1.2);
+  }
+
+  cleanUp() {
+    this.particles = this.particles.filter(p => p.breadCrumbs.length > 5);
+  }
+}
+
+class FlowParticle {
+  constructor(pos, moonCenter, moonRadius) {
+    this.done = false;
+    this.pos = pos;
+    this.vel = createVector(0, 0);
+    this.moonCenter = moonCenter;
+    this.moonRadius = moonRadius;
+    this.breadCrumbs = [this.pos.copy()];
+  }
+
+  step() {
+    this.breadCrumbs.push(this.pos.copy());
+
+
+    let nd = 0.001;
+    let nval = noise(this.pos.x * nd, this.pos.y * nd)
+    let vel = p5.Vector.fromAngle(4 * TWO_PI * nval).mult(0.2);
+    this.pos.add(vel);
+
+    if (this.pos.dist(this.moonCenter) > this.moonRadius) {
+      this.done = true;
+      // snap final vertex to circle's edge
+      let posRelativeToCenter = p5.Vector.sub(this.pos, this.moonCenter);
+      let rad = posRelativeToCenter.mag();
+      let factor = this.moonRadius / rad;
+      posRelativeToCenter.mult(factor).add(this.moonCenter);
+      this.breadCrumbs.push(posRelativeToCenter);
+    }
+  }
 }
