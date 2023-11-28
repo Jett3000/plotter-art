@@ -1,4 +1,16 @@
 var moons = [];
+var moonCount = 2;
+var stepsPerFrame = 10;
+var displaySegmentInterval = 4;
+var circlePackingEaseFactor = 0.9;
+var circleSpawningMarginFactor = 0.1;
+var circleMaxRateFactor = 3;
+var particlesPerMoon = 120;
+var specialParticleChance = 0.2;
+var specialParticleRadiusFactor = 1.2;
+var noiseDelta = 0.001;
+var noiseAngleRangeFactor = 4;
+var particleVelocityMag = 0.2;
 
 function keyPressed() {
   if (key == 's') {
@@ -17,7 +29,7 @@ function setup() {
   strokeWeight(1);
   ellipseMode(RADIUS);
 
-  let circles = packCircles();
+  let circles = packCircles(moonCount);
   debugger;
   moons = circles.map(c => {return new FlowMoon(c)})
 }
@@ -25,11 +37,11 @@ function setup() {
 function draw() {
   clear();
   moons.forEach(m => {
-    let stepsPerFrame = 20;
-    while (stepsPerFrame--) {
+    let counter = stepsPerFrame;
+    while (counter--) {
       m.step();
     }
-    m.show(4);
+    m.show(displaySegmentInterval);
   });
 }
 
@@ -73,18 +85,21 @@ function packCircles(n = 5) {
     }
   }
   // create breathing room
-  circles.forEach(c => c.rad *= 0.9)
+  circles.forEach(c => c.rad *= circlePackingEaseFactor)
   return circles.map(c => c.toVec())
 }
 
 class PackableCircle {
   constructor() {
-    let margin = 0.1;
     this.pos = createVector(
-        random(width * margin, width * (1 - margin)),
-        random(height * margin, height * (1 - margin)));
+        random(
+            width * circleSpawningMarginFactor,
+            width * (1 - circleSpawningMarginFactor)),
+        random(
+            height * circleSpawningMarginFactor,
+            height * (1 - circleSpawningMarginFactor)));
     this.rad = 1;
-    this.rate = random(1, 3);
+    this.rate = random(1, circleMaxRateFactor);
   }
 
   step() {
@@ -112,10 +127,11 @@ class FlowMoon {
     this.pos = createVector(circleVec.x, circleVec.y);
     this.rad = circleVec.z;
     this.particles = [];
-    this.particleCount = 120;
-    for (let i = 0; i < this.particleCount; i++) {
-      let particleRad = random() < 0.2 ? this.rad * 1.2 : this.rad;
-      let particlePos = p5.Vector.fromAngle(TWO_PI * i / this.particleCount)
+    for (let i = 0; i < particlesPerMoon; i++) {
+      let particleRad = random() < specialParticleChance ?
+          this.rad * specialParticleRadiusFactor :
+          this.rad;
+      let particlePos = p5.Vector.fromAngle(TWO_PI * i / particlesPerMoon)
                             .mult(particleRad)
                             .add(this.pos);
 
@@ -169,9 +185,10 @@ class FlowParticle {
     this.breadCrumbs.push(this.pos.copy());
 
 
-    let nd = 0.001;
-    let nval = noise(this.pos.x * nd, this.pos.y * nd)
-    let vel = p5.Vector.fromAngle(4 * TWO_PI * nval).mult(0.2);
+
+    let nval = noise(this.pos.x * noiseDelta, this.pos.y * noiseDelta)
+    let vel = p5.Vector.fromAngle(noiseAngleRangeFactor * TWO_PI * nval)
+                  .mult(particleVelocityMag);
     this.pos.add(vel);
 
     if (this.pos.dist(this.moonCenter) > this.moonRadius) {
