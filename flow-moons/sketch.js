@@ -6,9 +6,10 @@ var circlePackingEaseFactor = 0.9;
 var circleSpawningMarginFactor = 0.1;
 var circleMaxRateFactor = 3;
 var particlesPerMoon = 120;
+var minParticleSegments = 10;
 var specialParticleChance = 0.2;
 var specialParticleRadiusFactor = 1.2;
-var noiseDelta = 0.001;
+var noiseDelta = 0.0005;
 var noiseAngleRangeFactor = 4;
 var particleVelocityMag = 0.2;
 
@@ -24,7 +25,7 @@ function keyPressed() {
 }
 
 function setup() {
-  createCanvas(window.innerWidth, window.innerHeight, SVG);
+  createCanvas(window.innerWidth, window.innerHeight);
   noFill();
   strokeWeight(1);
   ellipseMode(RADIUS);
@@ -59,32 +60,35 @@ function packCircles(n = 5) {
   debugger;
   let allCirclesDone = false;
   while (!allCirclesDone) {
-    // grow circles
-    circles.forEach(c => c.step());
-    // check for collisions
+    // grow circles & check for collisions with walls
+    circles.forEach(c => {
+      c.step();
+      c.rate = c.againstWall() ? 0 : c.rate;
+    });
+
+    // then check for collisions between circles
     let circlePool = circles.slice();
     let curr = circlePool.pop();
     while (circlePool.length > 0) {
-      // with other circles
       for (let other of circlePool) {
         if (curr.colidesWith(other)) {
           curr.rate = 0;
           other.rate = 0;
         }
       }
-      // with the walls
-      if (curr.againstWall()) curr.rate = 0;
-
-      // check for completion
-      allCirclesDone = true;
-      circles.forEach(c => {
-        if (c.rate > 0) allCirclesDone = false;
-      });
-
+      // setup next iteration
       curr = circlePool.pop();
     }
+
+    // check for completion
+    allCirclesDone = true;
+    circles.forEach(c => {
+      if (c.rate > 0) allCirclesDone = false;
+    });
   }
+
   // create breathing room
+  debugger;
   circles.forEach(c => c.rad *= circlePackingEaseFactor)
   return circles.map(c => c.toVec())
 }
@@ -111,8 +115,9 @@ class PackableCircle {
   }
 
   againstWall() {
-    return this.pos.x < this.rad || this.pos.y < this.rad ||
-        width - this.pos.x < this.rad || height - this.pos.y < this.rad;
+    return (
+        this.pos.x < this.rad || this.pos.y < this.rad ||
+        this.pos.x + this.rad > width || this.pos.y + this.rad > height);
   }
 
   toVec() {
@@ -167,7 +172,8 @@ class FlowMoon {
   }
 
   cleanUp() {
-    this.particles = this.particles.filter(p => p.breadCrumbs.length > 5);
+    this.particles =
+        this.particles.filter(p => p.breadCrumbs.length > minParticleSegments);
   }
 }
 
