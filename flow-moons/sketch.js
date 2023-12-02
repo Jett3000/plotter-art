@@ -1,6 +1,6 @@
 var moons = [];
 // moon visuals
-var moonCount = 3;
+var moonCount = 1;
 var moonSizeFactor = 0.9;
 var particlesPerMoon = 360;
 var particleMinSegments = 10;
@@ -36,8 +36,15 @@ function setup() {
   strokeWeight(1);
   ellipseMode(RADIUS);
 
-  let circles = packCircles(moonCount);
   debugger;
+  let circles = [];
+  if (moonCount > 1) {
+    circles = packCircles(moonCount);
+  } else {
+    circles = [createVector(width / 2, height / 2, min(width, height) * 0.4)];
+  }
+
+
   moons = circles.map(c => {return new FlowMoon(c)})
 }
 
