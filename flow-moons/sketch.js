@@ -1,17 +1,23 @@
 var moons = [];
-var moonCount = 2;
+// moon visuals
+var moonCount = 3;
+var moonSizeFactor = 0.9;
+var particlesPerMoon = 360;
+var particleMinSegments = 10;
+var specialParticleChance = 0.25;
+var specialParticleRadiusFactor = 1.1;
+// noise simulation
+var noiseDelta = 0.008;
+var noiseSpeed = 0.004;
+var noiseAngleRangeFactor = 1;
+// circle packing
+var circleMaxRateFactor = 1;
+var circleSpawnMarginFactor = 0.2;
+// performance
 var stepsPerFrame = 10;
 var displaySegmentInterval = 4;
-var circlePackingEaseFactor = 0.9;
-var circleSpawningMarginFactor = 0.1;
-var circleMaxRateFactor = 3;
-var particlesPerMoon = 120;
-var minParticleSegments = 10;
-var specialParticleChance = 0.2;
-var specialParticleRadiusFactor = 1.2;
-var noiseDelta = 0.0005;
-var noiseAngleRangeFactor = 4;
-var particleVelocityMag = 0.2;
+var particleVelocityMag = 0.8;
+
 
 function keyPressed() {
   if (key == 's') {
@@ -25,7 +31,7 @@ function keyPressed() {
 }
 
 function setup() {
-  createCanvas(window.innerWidth, window.innerHeight);
+  createCanvas(window.innerWidth, window.innerHeight, SVG);
   noFill();
   strokeWeight(1);
   ellipseMode(RADIUS);
@@ -89,7 +95,7 @@ function packCircles(n = 5) {
 
   // create breathing room
   debugger;
-  circles.forEach(c => c.rad *= circlePackingEaseFactor)
+  circles.forEach(c => c.rad *= moonSizeFactor)
   return circles.map(c => c.toVec())
 }
 
@@ -97,11 +103,12 @@ class PackableCircle {
   constructor() {
     this.pos = createVector(
         random(
-            width * circleSpawningMarginFactor,
-            width * (1 - circleSpawningMarginFactor)),
+            width * circleSpawnMarginFactor,
+            width * (1 - circleSpawnMarginFactor)),
         random(
-            height * circleSpawningMarginFactor,
-            height * (1 - circleSpawningMarginFactor)));
+            height * circleSpawnMarginFactor,
+            height * (1 - circleSpawnMarginFactor)),
+    );
     this.rad = 1;
     this.rate = random(1, circleMaxRateFactor);
   }
@@ -167,13 +174,13 @@ class FlowMoon {
       });
       endShape();
     })
-    ellipse(this.pos.x, this.pos.y, this.rad);
+    // ellipse(this.pos.x, this.pos.y, this.rad);
     // ellipse(this.pos.x, this.pos.y, this.rad * 1.2);
   }
 
   cleanUp() {
     this.particles =
-        this.particles.filter(p => p.breadCrumbs.length > minParticleSegments);
+        this.particles.filter(p => p.breadCrumbs.length > particleMinSegments);
   }
 }
 
@@ -192,7 +199,9 @@ class FlowParticle {
 
 
 
-    let nval = noise(this.pos.x * noiseDelta, this.pos.y * noiseDelta)
+    let nval = noise(
+        this.pos.x * noiseDelta, this.pos.y * noiseDelta,
+        frameCount * noiseSpeed)
     let vel = p5.Vector.fromAngle(noiseAngleRangeFactor * TWO_PI * nval)
                   .mult(particleVelocityMag);
     this.pos.add(vel);
