@@ -114,7 +114,7 @@ function mouseClicked() {
 }
 
 function preload() {
-  sourcePicture = loadImage('density-poisson/slime.png');
+  sourcePicture = loadImage('density-poisson/chapel.png');
 }
 
 function setup() {

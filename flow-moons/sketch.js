@@ -2,20 +2,20 @@ var moons = [];
 // moon visuals
 var moonCount = 1;
 var moonSizeFactor = 0.9;
-var particlesPerMoon = 360;
+var particlesPerMoon = 480;
 var particleMinSegments = 10;
-var specialParticleChance = 0.25;
+var specialParticleChance = 0.02;
 var specialParticleRadiusFactor = 1.1;
 // noise simulation
-var noiseDelta = 0.008;
-var noiseSpeed = 0.004;
-var noiseAngleRangeFactor = 1;
+var noiseDelta = 0.001;
+var noiseSpeed = 0.0;
+var noiseAngleRangeFactor = 3;
 // circle packing
 var circleMaxRateFactor = 1;
 var circleSpawnMarginFactor = 0.2;
 // performance
 var stepsPerFrame = 10;
-var displaySegmentInterval = 4;
+var displaySegmentInterval = 8;
 var particleVelocityMag = 0.8;
 
 
@@ -173,9 +173,11 @@ class FlowMoon {
 
   show(everyNFrame = 1) {
     this.particles.forEach(p => {
+      if (p.breadCrumbs.length < particleMinSegments) return;
+
       beginShape();
       p.breadCrumbs.forEach((v, i) => {
-        if (i % everyNFrame == 0) {
+        if (i % everyNFrame == 0 || i == p.breadCrumbs.length - 1) {
           vertex(v.x, v.y)
         }
       });
@@ -210,7 +212,7 @@ class FlowParticle {
         this.pos.x * noiseDelta, this.pos.y * noiseDelta,
         frameCount * noiseSpeed)
     let vel = p5.Vector.fromAngle(noiseAngleRangeFactor * TWO_PI * nval)
-                  .mult(particleVelocityMag);
+                  .setMag(particleVelocityMag);
     this.pos.add(vel);
 
     if (this.pos.dist(this.moonCenter) > this.moonRadius) {
