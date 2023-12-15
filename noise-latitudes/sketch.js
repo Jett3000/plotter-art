@@ -89,14 +89,11 @@ function mouseClicked() {
 
 function setup() {
   // create the canvas for the sketch
-  let w = window.innerWidth;
-  let h = w / 1.41;  // a4 proportions
-  if (h > window.innerHeight) {
-    h = window.innerHeight * 0.9;
-    w = h * 1.41;  // a4 proportions
-  }
+  let ratio = 4 * 12 / 9;
+  let h = window.innerHeight * 0.5;
+  let w = h * ratio;
 
-  createCanvas(w, h, SVG);
+  createCanvas(w, h);
   noFill();
   stroke(0);
   strokeWeight(1);
