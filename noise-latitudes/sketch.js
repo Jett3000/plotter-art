@@ -89,11 +89,11 @@ function mouseClicked() {
 
 function setup() {
   // create the canvas for the sketch
-  let ratio = 4 * 12 / 9;
+  let ratio = 9;
   let h = window.innerHeight * 0.5;
-  let w = h * ratio;
+  let w = window.innerWidth;
 
-  createCanvas(w, h);
+  createCanvas(w, h, SVG);
   noFill();
   stroke(0);
   strokeWeight(1);
@@ -120,14 +120,14 @@ function draw() {
 
   // precalculate spacings and star position
   let designHeight = height * 0.8;
-  let designWidth = width * 0.9;
+  let designWidth = width * 0.99;
   let segmentSpacing = designWidth / segmentCount;
   let lineSpacing = designHeight / lineCount;
   let y = (height - designHeight) / 2;
   let x = (width - designWidth) / 2;
 
-  let animationValue = sin(frameCount / 100) + 1.01
-  nd.mag *= (animationValue);
+  // let animationValue = sin(frameCount / 100) + 1.01
+  // nd.mag *= (animationValue);
 
 
   // draw the figure

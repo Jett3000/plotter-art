@@ -1,15 +1,15 @@
 var moons = [];
 // moon visuals
-var moonCount = 1;
+var moonCount = 3;
 var moonSizeFactor = 0.9;
-var particlesPerMoon = 480;
+var particlesPerMoon = 120;
 var particleMinSegments = 10;
-var specialParticleChance = 0.02;
-var specialParticleRadiusFactor = 1.1;
+var specialParticleChance = 0.1;
+var specialParticleRadiusFactor = 1.4;
 // noise simulation
-var noiseDelta = 0.001;
+var noiseDelta = 0.003;
 var noiseSpeed = 0.0;
-var noiseAngleRangeFactor = 3;
+var noiseAngleRangeFactor = 1;
 // circle packing
 var circleMaxRateFactor = 1;
 var circleSpawnMarginFactor = 0.2;
@@ -43,6 +43,15 @@ function setup() {
   } else {
     circles = [createVector(width / 2, height / 2, min(width, height) * 0.4)];
   }
+
+  // circles = [];
+  // for (let i = 0; i < moonCount; i++) {
+  //   let vec = p5.Vector.fromAngle(TAU * i / moonCount)
+  //                 .mult(height / 4)
+  //                 .add(width / 2, height / 2);
+  //   vec.z = height / 8;
+  //   circles.push(vec);
+  // }
 
 
   moons = circles.map(c => {return new FlowMoon(c)})
