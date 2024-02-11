@@ -1,9 +1,8 @@
-var nd = {
-  x: 0.008,
-  y: 0.008,
-  t: 0,
-};
-
+var noiseDelta = 0.0008;
+var noiseDT = 0.0007;
+var particleVelocityMag = 2;
+var particleCount = 2400;
+var particles = [];
 var nmap;
 var gmap;
 
@@ -11,37 +10,21 @@ function setup() {
   createCanvas(window.innerWidth, window.innerHeight);
   noFill();
   strokeWeight(1);
+  stroke(255);
 
-  nmap = makeNoiseMap();
-  gmap = makeGradientMap(nmap);
+  let counter = particleCount;
+  while (counter--) {
+    particles.push(new FlowParticle());
+  }
 }
 
 function draw() {
-  image(nmap, 0, 0);
-  // drawVectorField(gmap);
+  background(0, 80)
 
-
-  let topLeft = noise((mouseX - 1) * nd.x, (mouseY - 1) * nd.y)
-  let top = noise((mouseX) * nd.x, (mouseY - 1) * nd.y)
-  let topRight = noise((mouseX + 1) * nd.x, (mouseY - 1) * nd.y)
-
-  let left = noise((mouseX - 1) * nd.x, (mouseY) * nd.y)
-  let right = noise((mouseX + 1) * nd.x, (mouseY) * nd.y)
-
-  let bottomLeft = noise((mouseX - 1) * nd.x, (mouseY + 1) * nd.y)
-  let bottom = noise((mouseX) * nd.x, (mouseY + 1) * nd.y)
-  let bottomRight = noise((mouseX + 1) * nd.x, (mouseY + 1) * nd.y)
-
-  // sobel filter on mouse noise convolution
-  let dy =
-      (topLeft + 2 * top + topRight) - (bottomLeft + 2 * bottom + bottomRight);
-  let dx =
-      (topLeft + 2 * left + bottomLeft) - (topRight + 2 * right + bottomRight);
-
-  let mouseVec = createVector(dx, dy).setMag(10).rotate(HALF_PI);
-  line(mouseX, mouseY, mouseX + mouseVec.x, mouseY + mouseVec.y);
-
-  // noLoop();
+  particles.forEach(p => {
+    p.show();
+    p.step();
+  })
 }
 
 function drawVectorField(gmap) {
@@ -112,55 +95,65 @@ function extractB(arr) {
 }
 
 class FlowParticle {
-  constructor(pos, moonCenter, moonRadius) {
-    this.done = false;
-    this.pos = pos;
+  constructor() {
+    this.pos = createVector(random(width), random(height));
     this.vel = createVector(0, 0);
-    this.moonCenter = moonCenter;
-    this.moonRadius = moonRadius;
     this.breadCrumbs = [this.pos.copy()];
+    this.maxCrumbs = random(8, 16);
   }
 
   step() {
-    this.breadCrumbs.push(this.pos.copy());
-
-
-
-    let nval = noise(
-        this.pos.x * noiseDelta, this.pos.y * noiseDelta,
-        frameCount * noiseSpeed)
-    let vel = p5.Vector.fromAngle(noiseAngleRangeFactor * TWO_PI * nval)
-                  .setMag(particleVelocityMag);
-    vel = this.gradientVelocity();
+    let vel = this.gradientVelocity();
     this.pos.add(vel);
 
-    if (this.pos.dist(this.moonCenter) > this.moonRadius) {
-      this.done = true;
-      // snap final vertex to circle's edge
-      let posRelativeToCenter = p5.Vector.sub(this.pos, this.moonCenter);
-      let rad = posRelativeToCenter.mag();
-      let factor = this.moonRadius / rad;
-      posRelativeToCenter.mult(factor).add(this.moonCenter);
-      this.breadCrumbs.push(posRelativeToCenter);
+    if (this.pos.x < 0 || this.pos.x > width || this.pos.y < 0 ||
+        this.pos.y > height) {
+      this.pos.x = random(width);
+      this.pos.y = random(height);
+      this.breadCrumbs = [];
+    };
+
+
+    this.breadCrumbs.push(this.pos.copy());
+    if (this.breadCrumbs.length > this.maxCrumbs) {
+      this.breadCrumbs.shift();
     }
+  }
+
+  show() {
+    beginShape();
+    this.breadCrumbs.forEach(v => vertex(v.x, v.y));
+    endShape();
   }
 
 
   gradientVelocity() {
-    let topLeft =
-        noise((this.pos.x - 1) * noiseDelta, (this.pos.y - 1) * noiseDelta)
-    let top = noise((this.pos.x) * noiseDelta, (this.pos.y - 1) * noiseDelta)
-    let topRight =
-        noise((this.pos.x + 1) * noiseDelta, (this.pos.y - 1) * noiseDelta)
+    let topLeft = noise(
+        (this.pos.x - 1) * noiseDelta, (this.pos.y - 1) * noiseDelta,
+        frameCount * noiseDT)
+    let top = noise(
+        (this.pos.x) * noiseDelta, (this.pos.y - 1) * noiseDelta,
+        frameCount * noiseDT)
+    let topRight = noise(
+        (this.pos.x + 1) * noiseDelta, (this.pos.y - 1) * noiseDelta,
+        frameCount * noiseDT)
 
-    let left = noise((this.pos.x - 1) * noiseDelta, (this.pos.y) * noiseDelta)
-    let right = noise((this.pos.x + 1) * noiseDelta, (this.pos.y) * noiseDelta)
+    let left = noise(
+        (this.pos.x - 1) * noiseDelta, (this.pos.y) * noiseDelta,
+        frameCount * noiseDT)
+    let right = noise(
+        (this.pos.x + 1) * noiseDelta, (this.pos.y) * noiseDelta,
+        frameCount * noiseDT)
 
-    let bottomLeft =
-        noise((this.pos.x - 1) * noiseDelta, (this.pos.y + 1) * noiseDelta)
-    let bottom = noise((this.pos.x) * noiseDelta, (this.pos.y + 1) * noiseDelta)
-    let bottomRight =
-        noise((this.pos.x + 1) * noiseDelta, (this.pos.y + 1) * noiseDelta)
+    let bottomLeft = noise(
+        (this.pos.x - 1) * noiseDelta, (this.pos.y + 1) * noiseDelta,
+        frameCount * noiseDT)
+    let bottom = noise(
+        (this.pos.x) * noiseDelta, (this.pos.y + 1) * noiseDelta,
+        frameCount * noiseDT)
+    let bottomRight = noise(
+        (this.pos.x + 1) * noiseDelta, (this.pos.y + 1) * noiseDelta,
+        frameCount * noiseDT)
 
     // sobel filter on mouse noise convolution
     let dy = (topLeft + 2 * top + topRight) -
