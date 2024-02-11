@@ -1,27 +1,31 @@
 var moons = [];
 // moon visuals
-var moonCount = 3;
+var moonCount = 1;
+var organizeMoons = false;
 var moonSizeFactor = 0.9;
-var particlesPerMoon = 120;
+var particlesPerMoon = 360;
 var particleMinSegments = 10;
-var specialParticleChance = 0.1;
-var specialParticleRadiusFactor = 1.4;
+var specialParticleChance = 0;
+var specialParticleRadiusFactor = 1.3;
 // noise simulation
-var noiseDelta = 0.003;
-var noiseSpeed = 0.0;
+var noiseDelta = 0.0012;
+var noiseSpeed = 0.005;
 var noiseAngleRangeFactor = 1;
 // circle packing
 var circleMaxRateFactor = 1;
 var circleSpawnMarginFactor = 0.2;
 // performance
-var stepsPerFrame = 10;
-var displaySegmentInterval = 8;
+var stepsPerFrame = 20;
+var displaySegmentInterval = 10;
 var particleVelocityMag = 0.8;
 
 
 function keyPressed() {
   if (key == 's') {
     clear()
+    if (specialParticleChance > 0) {
+      rect(0, 0, width, height)
+    }
     moons.forEach(m => {
       m.cleanUp();
       m.show();
@@ -31,27 +35,30 @@ function keyPressed() {
 }
 
 function setup() {
-  createCanvas(window.innerWidth, window.innerHeight, SVG);
+  let w = min(window.innerWidth, window.innerHeight);
+  createCanvas(w, w, SVG);
   noFill();
   strokeWeight(1);
   ellipseMode(RADIUS);
 
-  debugger;
   let circles = [];
   if (moonCount > 1) {
     circles = packCircles(moonCount);
   } else {
-    circles = [createVector(width / 2, height / 2, min(width, height) * 0.4)];
+    circles = [createVector(width / 2, height / 2, min(width, height) * 0.45)];
   }
 
-  // circles = [];
-  // for (let i = 0; i < moonCount; i++) {
-  //   let vec = p5.Vector.fromAngle(TAU * i / moonCount)
-  //                 .mult(height / 4)
-  //                 .add(width / 2, height / 2);
-  //   vec.z = height / 8;
-  //   circles.push(vec);
-  // }
+  if (organizeMoons) {
+    circles = [];
+    for (let i = 0; i < moonCount; i++) {
+      let vec = p5.Vector.fromAngle(TAU * i / moonCount)
+                    .mult(height / 4)
+                    .add(width / 2, height / 2);
+      vec.z = height / 8;
+      circles.push(vec);
+    }
+  }
+
 
 
   moons = circles.map(c => {return new FlowMoon(c)})
@@ -199,6 +206,10 @@ class FlowMoon {
   cleanUp() {
     this.particles =
         this.particles.filter(p => p.breadCrumbs.length > particleMinSegments);
+
+    this.particles.sort((a, b) => {
+      return a.breadCrumbs[0].y - b.breadCrumbs[0].y;
+    });
   }
 }
 
@@ -222,6 +233,7 @@ class FlowParticle {
         frameCount * noiseSpeed)
     let vel = p5.Vector.fromAngle(noiseAngleRangeFactor * TWO_PI * nval)
                   .setMag(particleVelocityMag);
+    vel = this.gradientVelocity();
     this.pos.add(vel);
 
     if (this.pos.dist(this.moonCenter) > this.moonRadius) {
@@ -233,5 +245,31 @@ class FlowParticle {
       posRelativeToCenter.mult(factor).add(this.moonCenter);
       this.breadCrumbs.push(posRelativeToCenter);
     }
+  }
+
+
+  gradientVelocity() {
+    let topLeft =
+        noise((this.pos.x - 1) * noiseDelta, (this.pos.y - 1) * noiseDelta)
+    let top = noise((this.pos.x) * noiseDelta, (this.pos.y - 1) * noiseDelta)
+    let topRight =
+        noise((this.pos.x + 1) * noiseDelta, (this.pos.y - 1) * noiseDelta)
+
+    let left = noise((this.pos.x - 1) * noiseDelta, (this.pos.y) * noiseDelta)
+    let right = noise((this.pos.x + 1) * noiseDelta, (this.pos.y) * noiseDelta)
+
+    let bottomLeft =
+        noise((this.pos.x - 1) * noiseDelta, (this.pos.y + 1) * noiseDelta)
+    let bottom = noise((this.pos.x) * noiseDelta, (this.pos.y + 1) * noiseDelta)
+    let bottomRight =
+        noise((this.pos.x + 1) * noiseDelta, (this.pos.y + 1) * noiseDelta)
+
+    // sobel filter on mouse noise convolution
+    let dy = (topLeft + 2 * top + topRight) -
+        (bottomLeft + 2 * bottom + bottomRight);
+    let dx = (topLeft + 2 * left + bottomLeft) -
+        (topRight + 2 * right + bottomRight);
+
+    return createVector(dx, dy).rotate(HALF_PI).setMag(particleVelocityMag);
   }
 }
