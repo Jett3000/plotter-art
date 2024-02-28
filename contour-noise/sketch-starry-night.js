@@ -1,7 +1,7 @@
 var noiseDelta = 0.002;
 var noiseDT = 0.00;
-var stepsPerFrame = 4;
-var particleVelocityMag = 0.1;
+var stepsPerFrame = 2;
+var particleVelocityMag = 1;
 var tailLength = 10;
 var particleCount = 9000;
 var particles = [];
@@ -138,11 +138,11 @@ class FlowParticle {
     beginShape();
     let lastCrumb = this.breadCrumbs[0];
     let lineLeft = tailLength;
-    let index = this.breadCrumbs.length - 1;
-    while (index >= 0 && lineLeft >= 0) {
+    let index = 0;
+    while (index <= this.breadCrumbs.length - 1 && lineLeft >= 0) {
       let currCrumb = this.breadCrumbs[index];
       vertex(currCrumb.x, currCrumb.y);
-      index--;
+      index++;
 
       let crumbDist = dist(currCrumb.x, currCrumb.y, lastCrumb.x, lastCrumb.y)
       lineLeft -= crumbDist;
