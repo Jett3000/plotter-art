@@ -8,8 +8,8 @@ var particleMinSegments = 10;
 var specialParticleChance = 0;
 var specialParticleRadiusFactor = 1.3;
 // noise simulation
-var noiseDelta = 0.0012;
-var noiseSpeed = 0.00;
+var noiseDelta = 0.0009;
+var noiseSpeed = 0.001;
 var offsetAmount = 0.03;
 var noiseAngleRangeFactor = 1;
 // circle packing
@@ -28,11 +28,12 @@ function keyPressed() {
       moons[0].cleanUp();
       moons[0].show();
       save();
-
-      clear()
-      moons[1].cleanUp();
-      moons[1].show();
-      save();
+      if (moons.length > 1) {
+        clear()
+        moons[1].cleanUp();
+        moons[1].show();
+        save();
+      }
     } else {
       clear()
       if (specialParticleChance > 0) {
@@ -49,7 +50,7 @@ function keyPressed() {
 
 function setup() {
   let w = min(window.innerWidth, window.innerHeight);
-  createCanvas(w, w);
+  createCanvas(w, w, SVG);
   noFill();
   strokeWeight(1);
   ellipseMode(RADIUS);
@@ -58,7 +59,10 @@ function setup() {
   if (moonCount > 1) {
     circles = packCircles(moonCount);
   } else {
-    circles = [createVector(width / 2, height / 2, min(width, height) * 0.45)];
+    circles = [
+      createVector(width / 2, height / 2, min(width, height) * 0.45)
+      // createVector(width / 2, height / 2, min(width, height) * 0.45, 6)
+    ];
   }
 
   if (organizeMoons) {

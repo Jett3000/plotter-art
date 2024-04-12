@@ -1,6 +1,6 @@
 var noiseDelta = 0.002;
 var noiseDT = 0.00;
-var stepsPerFrame = 2;
+var stepsPerFrame = 10;
 var particleVelocityMag = 1;
 var tailLength = 10;
 var particleCount = 9000;
@@ -9,7 +9,7 @@ var nmap;
 var gmap;
 
 function setup() {
-  createCanvas(window.innerWidth, window.innerHeight);
+  createCanvas(window.innerWidth, window.innerHeight, SVG);
   noFill();
   strokeWeight(1);
   stroke(255);

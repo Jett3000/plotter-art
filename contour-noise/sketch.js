@@ -1,8 +1,8 @@
 var noiseDelta = 0.002;
 var noiseDT = 0.00;
-var stepsPerFrame = 4;
-var particleVelocityMag = 0.1;
-var tailLength = 10;
+var stepsPerFrame = 2;
+var particleVelocityMag = 1;
+var tailLength = 40;
 var particleCount = 9000;
 var particles = [];
 var nmap;
@@ -18,8 +18,6 @@ function setup() {
   while (counter--) {
     particles.push(new FlowParticle());
   }
-
-  // var sampler = new PoissonDiscSampler();
 }
 
 function keyPressed() {
@@ -123,6 +121,8 @@ class FlowParticle {
   step() {
     let vel = this.gradientVelocity();
     this.pos.add(vel);
+    this.breadCrumbs.push(this.pos.copy());
+
 
     if (this.pos.x < 0 || this.pos.x > width || this.pos.y < 0 ||
         this.pos.y > height) {
@@ -130,13 +130,11 @@ class FlowParticle {
       this.pos.y = random(height);
       this.breadCrumbs = [];
     };
-
-    this.breadCrumbs.push(this.pos.copy());
   }
 
   show() {
     beginShape();
-    let lastCrumb = this.breadCrumbs[0];
+    let lastCrumb = this.breadCrumbs[this.breadCrumbs.length - 1];
     let lineLeft = tailLength;
     let index = this.breadCrumbs.length - 1;
     while (index >= 0 && lineLeft >= 0) {

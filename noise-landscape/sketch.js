@@ -118,33 +118,45 @@ function draw() {
   let breaking = breakingCheckbox.checked();
 
 
-  // precalculate spacings and star position
-  let designHeight = height * 0.7;
+  // precalculate spacings and start position
+  let designHeight = height * 0.8;
   let designWidth = width * 0.99;
   let segmentSpacing = designWidth / segmentCount;
   let lineSpacing = designHeight / lineCount;
   let y = (height - designHeight) / 2;
   let x = (width - designWidth) / 2;
 
-  // let animationValue = sin(frameCount / 100) + 1.01
-  // nd.mag *= (animationValue);
 
 
   // draw the figure
+  let horizonLine = floor(lineCount * 0.5);
+  let maxHorizonDistance = max(horizonLine, lineCount - horizonLine);
+
   beginShape()
   for (let currLine = 0; currLine <= lineCount; currLine++) {
+    let factor = 1 * abs(currLine - horizonLine) / maxHorizonDistance;
+    factor = max(0.1, factor);
+
+    let magFactor = currLine < horizonLine ?
+        currLine / horizonLine :
+        1 - (currLine - horizonLine) / (lineCount - horizonLine);
+
+
+    // magFactor = 1;
+    console.log(magFactor);
+
     for (let currSeg = 0; currSeg < segmentCount; currSeg++) {
-      vertex(x, y + (noise(x * nd.x, y * nd.y) - 0.5) * nd.mag);
+      vertex(x, y + (noise(x * nd.x, y * nd.y) - 0.5) * nd.mag * magFactor);
       x += segmentSpacing * (currLine % 2 == 0 ? 1 : -1);
     }
-    vertex(x, y + (noise(x * nd.x, y * nd.y) - 0.5) * nd.mag);
+    vertex(x, y + (noise(x * nd.x, y * nd.y) - 0.5) * nd.mag * magFactor);
 
     if (breaking) {
       endShape();
       beginShape();
     }
 
-    y += lineSpacing;
+    y += lineSpacing * pow(factor, 2.8) * 2;
   }
   endShape();
 
